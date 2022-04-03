@@ -57,7 +57,6 @@ public class DebitTransactionServiceImpl implements DebitTransactionService {
         else{
            debitObj.setStatus(Status.FAILURE);
             DebitTransaction result=debitRepository.save(debitObj);
-           throw new RuntimeException("debit amount exceeded");
         }
         accountRepository.save(acc);
         debitObj.setAccount(acc);
@@ -68,9 +67,33 @@ public class DebitTransactionServiceImpl implements DebitTransactionService {
     }
 
     @Override
-    public List<DebitTransaction> getAllDebitTransactions(Long accountId) {
+    public List<DebitTransaction> getAllDebitTransactions(Long userId) {
+        Optional<User> saveduser=userRepository.findById(userId);
+        if(!saveduser.isPresent()){
+            throw new UserNotFoundException("user not present exception with id -- "+ userId);
+        }
+        User user=saveduser.get();
+        if(user.getAccount()==null){
+            throw new RuntimeException("Account not exist for user");
+        }
+        Optional<Account> accfromDb=accountRepository.findById(user.getAccount().getAccountId());
+          Long accountId=accfromDb.get().getAccountId();
+        return debitRepository.findByAccountId(accountId);
+    }
 
-        return null;
+    @Override
+    public DebitTransaction getTransactionByOrderId(Long userId, String orderId) {
+        Optional<User> saveduser=userRepository.findById(userId);
+        if(!saveduser.isPresent()){
+            throw new UserNotFoundException("user not present exception with id -- "+ userId);
+        }
+        User user=saveduser.get();
+        if(user.getAccount()==null){
+            throw new RuntimeException("Account not exist for user");
+        }
+        Optional<Account> accfromDb=accountRepository.findById(user.getAccount().getAccountId());
+        Long accountId=accfromDb.get().getAccountId();
+        return debitRepository.findTop1ByOrderId(orderId);
     }
 
     private boolean isValid(int amt, int availableCreditLimit) {

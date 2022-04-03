@@ -20,7 +20,7 @@ public class Refund {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long refundId;
 
-    private Long transactionId;
+    private String transactionId;
     @CreationTimestamp
 
     @Temporal(TemporalType.TIMESTAMP)
